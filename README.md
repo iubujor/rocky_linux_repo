@@ -1,4 +1,4 @@
-Conifugration uses Apache and rsync.
+Conifugration uses Apache and rsync to sync and publish Rocky linyx 8/9 packages.
 
 Prerequisites:
 dnf -y install \

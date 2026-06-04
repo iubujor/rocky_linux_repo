@@ -4,7 +4,6 @@ import argparse
 import gzip
 import hashlib
 import lzma
-import os
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -28,6 +27,7 @@ def hash_file(path: Path, algo: str) -> str:
 
 def find_primary_metadata(repo_root: Path) -> Path:
     repomd = repo_root / "repodata" / "repomd.xml"
+
     if not repomd.exists():
         raise FileNotFoundError(f"Missing {repomd}")
 
@@ -39,18 +39,23 @@ def find_primary_metadata(repo_root: Path) -> Path:
             location = data.find("repo:location", NS_REPOMD)
             if location is None:
                 continue
+
             href = location.attrib.get("href")
             if not href:
                 continue
+
             primary = repo_root / href
+
             if not primary.exists():
                 raise FileNotFoundError(f"Primary metadata referenced but missing: {primary}")
+
             return primary
 
     raise RuntimeError(f"No primary metadata found in {repomd}")
 
 def verify_repo(repo_root: Path) -> int:
     primary = find_primary_metadata(repo_root)
+
     print(f"[INFO] Repo: {repo_root}")
     print(f"[INFO] Primary metadata: {primary}")
 
@@ -99,11 +104,20 @@ def verify_repo(repo_root: Path) -> int:
 
     if missing or failed:
         return 1
+
     return 0
 
 def main():
-    parser = argparse.ArgumentParser(description="Verify RPM checksums against repository primary metadata.")
-    parser.add_argument("repo_roots", nargs="+", help="Repository root paths, e.g. /var/www/html/rocky/9/BaseOS/x86_64/os")
+    parser = argparse.ArgumentParser(
+        description="Verify RPM checksums against repository primary metadata."
+    )
+
+    parser.add_argument(
+        "repo_roots",
+        nargs="+",
+        help="Repository roots, for example /home1/repos/rocky/9/BaseOS/x86_64/os"
+    )
+
     args = parser.parse_args()
 
     exit_code = 0
